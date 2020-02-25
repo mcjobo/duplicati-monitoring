@@ -21,16 +21,19 @@ class MonitoringVerticle : CoroutineVerticle() {
             println("root called")
             routingContext.response().putHeader(HttpHeaders.CONTENT_TYPE, "application/json").end(rootHandler())
         }
-        router.route(HttpMethod.POST, "/duplicati").handler { ctx ->
+        router.route(HttpMethod.POST, "/duplicati/:terminal/:user/:backup").handler { ctx ->
 
             println("duplicati called")
             val headers = ctx.request().headers()
             val params = ctx.request().params()
-            val body = ctx.getBodyAsString()
-//            val body = ctx.getBodyAsJson()
+//            val body = ctx.getBodyAsString()
+            val body = ctx.getBodyAsJson()
+            body.put("terminal", ctx.request().getParam("terminal"))
+            body.put("user", ctx.request().getParam("user"))
+            body.put("backup", ctx.request().getParam("backup"))
             println("request header: " + headers)
             println("request params: " + params)
-            println("body: " + body)
+            println("body: " + body.encodePrettily())
 
             ctx.response().end()
         }
