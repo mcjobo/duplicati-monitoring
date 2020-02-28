@@ -1,18 +1,27 @@
 package org.bolay.duplicati.monitoring.verticle
 
+import io.netty.handler.codec.mqtt.MqttQoS
+import io.vertx.core.AsyncResult
+import io.vertx.core.Vertx
+import io.vertx.core.buffer.Buffer
 import io.vertx.core.http.HttpHeaders
 import io.vertx.core.http.HttpMethod
-
+import io.vertx.core.json.JsonObject
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.handler.BodyHandler
-import io.vertx.ext.web.impl.Utils
-
 import io.vertx.kotlin.coroutines.CoroutineVerticle
-import java.net.URLDecoder
+import io.vertx.mqtt.MqttClient
+import io.vertx.mqtt.messages.MqttConnAckMessage
 
 
 class MonitoringVerticle : CoroutineVerticle() {
+    val mqttClient = MqttClient.create(Vertx.vertx())
     override suspend fun start() {
+        mqttClient.connect(1883, "openhab-s1") { connection ->
+            if (connection.succeeded()) {
+                println("connection to mqtt succeded")
+            }
+        }
 
         var server = vertx.createHttpServer()
         val router = Router.router(vertx)
@@ -34,7 +43,7 @@ class MonitoringVerticle : CoroutineVerticle() {
             println("request header: " + headers)
             println("request params: " + params)
             println("body: " + body.encodePrettily())
-
+            duplicatiMonitoring(body)
             ctx.response().end()
         }
 
@@ -51,7 +60,18 @@ class MonitoringVerticle : CoroutineVerticle() {
         return "<h1>Hello from my first Vert.x 3 application</h1>"
     }
 
-    fun duplicatiMonitoring() {
+    fun duplicatiMonitoring(result: JsonObject) {
 
+
+        val baseTopic = "/backup/duplicati/monitoring/${result.getString("terminal")}/"
+        val succesfulString = result.getJsonObject("Data").getString("ParsedResult")
+
+        mqttClient.publish(baseTopic + "lastResult", Buffer.buffer(succesfulString), MqttQoS.EXACTLY_ONCE, false, false)
+        mqttClient.publish(baseTopic + "lastDate", Buffer.buffer(result.getJsonObject("Data").getString("EndTime")), MqttQoS.EXACTLY_ONCE, false, false)
+        if(succesfulString == "Success"){
+            mqttClient.publish(baseTopic + "lastSuccesfullDate", Buffer.buffer(result.getJsonObject("Data").getString("EndTime")), MqttQoS.EXACTLY_ONCE, false, false)
+            mqttClient.publish(baseTopic + "lastSuccesfullNumberFiles", Buffer.buffer(result.getJsonObject("Data").getInteger("ExaminedFiles").toString()), MqttQoS.EXACTLY_ONCE, false, false)
+            mqttClient.publish(baseTopic + "lastSuccesfullFileSize", Buffer.buffer(result.getJsonObject("Data").getInteger("SizeOfExaminedFiles").toString()), MqttQoS.EXACTLY_ONCE, false, false)
+        }
     }
 }

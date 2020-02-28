@@ -1,5 +1,6 @@
 plugins {
     id 'org.jetbrains.kotlin.jvm' version '1.3.41'
+    id 'com.github.johnrengelman.shadow' version '5.2.0'
 }
 
 group 'Duplicati-Monitoring'
@@ -15,6 +16,7 @@ dependencies {
     compile 'io.vertx:vertx-web:3.8.5'
     compile 'io.vertx:vertx-lang-kotlin-coroutines:3.8.5'
     compile 'io.vertx:vertx-lang-kotlin:3.8.5'
+    compile 'io.vertx:vertx-mqtt:3.8.5'
 }
 
 compileKotlin {
@@ -22,4 +24,10 @@ compileKotlin {
 }
 compileTestKotlin {
     kotlinOptions.jvmTarget = "1.8"
+}
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'org.bolay.duplicati.monitoring.verticle.StartupKt'
+    }
 }
