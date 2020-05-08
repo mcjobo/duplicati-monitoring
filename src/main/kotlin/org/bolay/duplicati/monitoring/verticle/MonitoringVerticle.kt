@@ -46,9 +46,11 @@ class MonitoringVerticle : CoroutineVerticle() {
             duplicatiMonitoring(body)
             ctx.response().end()
         }
-
-        server.requestHandler(router).listen(8080)
+        var listenPort = System.getProperty("LISTEN_PORT")
+        var port = (listenPort as String).toInt()
+        server.requestHandler(router).listen(port)
         println("Duplicati Monitoring Verticle verticle startet!")
+        println("listening on port: " + port)
 
     }
 
