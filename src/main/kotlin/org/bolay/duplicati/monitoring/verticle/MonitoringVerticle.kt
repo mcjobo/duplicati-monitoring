@@ -11,13 +11,14 @@ import io.vertx.ext.web.Router
 import io.vertx.ext.web.handler.BodyHandler
 import io.vertx.kotlin.coroutines.CoroutineVerticle
 import io.vertx.mqtt.MqttClient
+import io.vertx.mqtt.MqttClientOptions
 import io.vertx.mqtt.messages.MqttConnAckMessage
 
 
 class MonitoringVerticle : CoroutineVerticle() {
     var mqttHost = System.getProperty("MQTT_HOST")
 
-    val mqttClient = MqttClient.create(Vertx.vertx())
+    val mqttClient = MqttClient.create(Vertx.vertx(), MqttClientOptions(JsonObject("{\"username\":\"mosquitto\",\"password\":\"Z3Sqx8kTGYj5eVN3ZgOm\"}")))
     override suspend fun start() {
         mqttClient.connect(1883, mqttHost) { connection ->
             if (connection.succeeded()) {
