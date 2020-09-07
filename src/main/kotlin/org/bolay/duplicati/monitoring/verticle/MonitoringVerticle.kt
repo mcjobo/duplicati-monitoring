@@ -15,9 +15,11 @@ import io.vertx.mqtt.messages.MqttConnAckMessage
 
 
 class MonitoringVerticle : CoroutineVerticle() {
+    var mqttHost = System.getProperty("MQTT_HOST")
+
     val mqttClient = MqttClient.create(Vertx.vertx())
     override suspend fun start() {
-        mqttClient.connect(1883, "openhab-s1") { connection ->
+        mqttClient.connect(1883, mqttHost) { connection ->
             if (connection.succeeded()) {
                 println("connection to mqtt succeded")
             }
